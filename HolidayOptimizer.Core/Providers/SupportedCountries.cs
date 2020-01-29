@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 
-namespace HolidayOptimizer.Core.Providers
-{
-    public class SupportedCountries : ISupportedCountries
+namespace HolidayOptimizer.Core.Providers {
+  public class SupportedCountries : ISupportedCountries
     {
         public List<string> Get()
         {
@@ -15,10 +14,5 @@ namespace HolidayOptimizer.Core.Providers
                 "PT", "PY", "RO", "RS", "RU", "SE", "SI", "SJ", "SK", "SM", "SR", "SV", "TN", "TR", "UA", "US", "UY",
                 "VA", "VE", "ZA" };
         }
-    }
-
-    public interface ISupportedCountries
-    {
-        List<string> Get();
     }
 }

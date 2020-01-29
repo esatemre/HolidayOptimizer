@@ -1,12 +1,13 @@
-﻿namespace HolidayOptimizer.Core.Providers
-{
-    using Newtonsoft.Json;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using Microsoft.Extensions.Caching.Memory;
-    using System;
-    using Timezone;
-    public class TimezoneProvider : ITimezoneProvider
+﻿using Newtonsoft.Json;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using HolidayOptimizer.Core.Providers.Timezone;
+using System.Collections.Generic;
+
+namespace HolidayOptimizer.Core.Providers {
+  public class TimezoneProvider : ITimezoneProvider
     {
 
         private readonly IHttpClientFactory _httpClientFactory;
@@ -35,27 +36,32 @@
             });
             
         }
-        public async Task<GetAllTimezonesResponse> GetAllTimezones()
+        public async Task<IDictionary<string, IEnumerable<TimeSpan>>> GetAllTimezones()
         {
             string cacheKey = "Timezones";
             return await _cache.GetOrCreateAsync(cacheKey, async entry =>
             {
                 entry.SlidingExpiration = TimeSpan.FromHours(1);
 
+                var timezones = new Dictionary<string, IEnumerable<TimeSpan>>();
                 foreach (var country in _supportedCountries.Get())
                 {
+                    //Get country timezones
                     var timezonesOfCountry = await GetTimezones(new GetTimezoneRequest() { CountryCode = country });
+                    var timeSpans= new List<TimeSpan>();
+                    //parse country timezones into timespans
+                    foreach (var item in timezonesOfCountry.Timezones) {
+                        TimeSpan span;
+                        if (TimeSpan.TryParse(item.Replace("UTC", "").Replace("+", ""), out span)) 
+                        {
+                            timeSpans.Add(span);
+                        }
+                    }
+                    timezones.Add(country, timeSpans);
                 }
-                var timezones = new GetAllTimezonesResponse();
                 return timezones;
             });
             
         }
-    }
-
-    public interface ITimezoneProvider
-    {
-        Task<GetTimezoneResponse> GetTimezones(GetTimezoneRequest request);
-        Task<GetAllTimezonesResponse> GetAllTimezones();
     }
 }
